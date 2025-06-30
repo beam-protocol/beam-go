@@ -7,19 +7,19 @@ import (
 
 // Entry represents a single blog post entry
 type Entry struct {
-	ID              string     `json:"id"`
-	Title           string     `json:"title"`
-	Content         string     `json:"content,omitempty"`
-	Summary         string     `json:"summary,omitempty"`
-	URL             string     `json:"url"`
-	Published       time.Time  `json:"published"`
-	Updated         *time.Time `json:"updated,omitempty"`
-	Author          *Author    `json:"author,omitempty"`
-	Tags            []string   `json:"tags,omitempty"`
-	Category        string     `json:"category,omitempty"`
-	Image           string     `json:"image,omitempty"`
-	ReadingTime     int        `json:"reading_time,omitempty"`
-	ExtensionFields `json:"-"`
+	ID          string          `json:"id"`
+	Title       string          `json:"title"`
+	Content     string          `json:"content,omitempty"`
+	Summary     string          `json:"summary,omitempty"`
+	URL         string          `json:"url"`
+	Published   time.Time       `json:"published"`
+	Updated     *time.Time      `json:"updated,omitempty"`
+	Author      *Author         `json:"author,omitempty"`
+	Tags        []string        `json:"tags,omitempty"`
+	Category    string          `json:"category,omitempty"`
+	Image       string          `json:"image,omitempty"`
+	ReadingTime int             `json:"reading_time,omitempty"`
+	Extensions  ExtensionFields `json:"extensions,omitempty"`
 }
 
 // NewEntry creates a new entry with required fields
@@ -69,6 +69,16 @@ func (e *Entry) SetUpdated(updated time.Time) {
 	e.Updated = &utcTime
 }
 
+// SetExtension adds or updates an extension field on the entry.
+func (e *Entry) SetExtension(key KindExtension, value any) {
+	e.Extensions.Set(key, value)
+}
+
+// GetExtension retrieves a custom extension field by its key.
+func (e *Entry) GetExtension(key KindExtension) (any, bool) {
+	return e.Extensions.Get(key)
+}
+
 // Validate validates the entry structure
 func (e *Entry) Validate() error {
 	if strings.TrimSpace(e.ID) == "" {
@@ -92,34 +102,4 @@ func (e *Entry) Validate() error {
 	}
 
 	return nil
-}
-
-// ExtensionFields represents a map of custom extension fields for an entry.
-// These fields can be used to store additional metadata or custom data
-// that is not part of the standard BEAM entry structure. Keys should start with an underscore
-// to avoid conflicts with standard fields.
-// Example: {"_customField": "value", "_anotherField": 123}
-type ExtensionFields map[string]any
-
-// SetExtension adds or updates an extension field on the entry.
-func (e *Entry) SetExtension(key string, value any) {
-	if e.ExtensionFields == nil {
-		e.ExtensionFields = make(ExtensionFields)
-	}
-	if len(key) > 0 && key[0] != '_' {
-		key = "_" + key
-	}
-	e.ExtensionFields[key] = value
-}
-
-// GetExtension retrieves a custom extension field by its key.
-func (e *Entry) GetExtension(key string) (any, bool) {
-	if e.ExtensionFields == nil {
-		return nil, false
-	}
-	if key[0] != '_' {
-		key = "_" + key
-	}
-	val, ok := e.ExtensionFields[key]
-	return val, ok
 }

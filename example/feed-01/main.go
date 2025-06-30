@@ -24,6 +24,13 @@ func main() {
 	entry1.SetCategory("Web Development")
 	entry1.SetImage("https://localhost:8081/images/react-2025.jpg")
 
+	entry1.SetExtension(beam.KindViewsExtension, 1500)
+	entry1.SetExtension(beam.KindCommentsExtension, []string{
+		"Great insights on React!",
+		"Looking forward to trying these features.",
+		"Thanks for sharing!",
+	})
+
 	entry2 := beam.NewEntry("golang-best-practices", "Go Best Practices for 2025", "https://localhost:8081/golang-best-practices", time.Now().Add(-12*time.Hour))
 	entry2.SetContent("<p>Go has become one of the most popular programming languages for backend development. Here are the best practices every Go developer should know in 2025.</p><p>We'll cover error handling, project structure, testing strategies, and performance optimization techniques.</p>")
 	entry2.SetSummary("Essential Go best practices for modern development")
