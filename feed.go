@@ -3,7 +3,10 @@
 package beam
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -320,4 +323,28 @@ func (f *Feed) HomePage(w http.ResponseWriter, r *http.Request) {
 	html += `</body></html>`
 	w.Header().Set("Content-Type", "text/html")
 	w.Write([]byte(html))
+}
+
+// ComputeFeedHash calculates the SHA-256 hash of the serialized feed content.
+// It can be used to verify the integrity and trustworthiness of the data.
+func (f *Feed) ComputeFeedHash() (string, error) {
+	data, err := json.Marshal(f.Items)
+	if err != nil {
+		return "", err
+	}
+	hash := sha256.Sum256(data)
+	return hex.EncodeToString(hash[:]), nil
+}
+
+// ValidateFeedHash verifies the computed hash of the feed against an expected hash.
+// If the hashes do not match, it indicates that the feed data may not be trustworthy.
+func (f *Feed) ValidateFeedHash(expectedHash string) error {
+	actualHash, err := f.ComputeFeedHash()
+	if err != nil {
+		return err
+	}
+	if actualHash != expectedHash {
+		return errors.New("feed hash mismatch: data may not be trustworthy")
+	}
+	return nil
 }
