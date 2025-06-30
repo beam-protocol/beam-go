@@ -37,7 +37,7 @@ func NewAggregator(title, feedURL string) *Aggregator {
 }
 
 // AddSource adds a new feed source to the aggregator
-func (a *Aggregator) AddSource(url, name, description string) {
+func (a *Aggregator) AddSource(name, description, url string) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
@@ -166,9 +166,11 @@ func (a *Aggregator) GetStats() map[string]any {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	activeCount := 0
-	errorCount := 0
-	totalEntries := 0
+	var (
+		activeCount  = 0
+		errorCount   = 0
+		totalEntries = 0
+	)
 
 	for _, source := range a.Sources {
 		switch source.Status {
@@ -205,6 +207,9 @@ func (a *Aggregator) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.AggregatedFeed.ServeHTTP(w, r)
 }
 
+// HomePage serves the aggregator's home page with feed information
+// It displays the feed sources, last updated time, and recent entries
+// in a simple HTML format.
 func (a *Aggregator) HomePage(w http.ResponseWriter, r *http.Request) {
 	html := `
 		<!DOCTYPE html>
@@ -226,19 +231,15 @@ func (a *Aggregator) HomePage(w http.ResponseWriter, r *http.Request) {
 			<p>Last Updated: <strong>` + a.AggregatedFeed.LastUpdated.Local().Format(time.DateTime) + `</strong></p>
 			<h2>Sources</h2>
 			<ul>`
+
 	for _, src := range a.Sources {
 		html += fmt.Sprintf("<li><strong>%s</strong> - <a href=\"%s\">%s</a> <span class=\"source\">(%s)</span></li>", src.Name, src.URL, src.URL, src.Description)
 	}
-	html += `</ul><hr/>`
 
-	html += `<h3>Recent Entries</h3>`
+	html += `</ul><hr/><h3>Recent Entries</h3>`
 	if a.AggregatedFeed != nil && len(a.AggregatedFeed.Items) > 0 {
-		maxEntries := 10
-		if len(a.AggregatedFeed.Items) < maxEntries {
-			maxEntries = len(a.AggregatedFeed.Items)
-		}
-		for i := 0; i < maxEntries; i++ {
-			entry := a.AggregatedFeed.Items[i]
+		maxEntries := min(15, len(a.AggregatedFeed.Items))
+		for _, entry := range a.AggregatedFeed.Items[:maxEntries] {
 			html += `<div class="entry">`
 			html += fmt.Sprintf("<h4><a href=\"%s\">%s</a></h4>", entry.URL, entry.Title)
 			html += fmt.Sprintf("<div class=\"source\">Published: %s</div>", entry.Published.Format("2006-01-02 15:04"))

@@ -12,9 +12,8 @@ import (
 
 func main() {
 	aggregator := beam.NewAggregator("Tech News Aggregator", "http://localhost:8181/feed.json")
-
-	aggregator.AddSource("http://localhost:8081/feed.json", "Feed 01", "Latest technology news and startup coverage")
-	aggregator.AddSource("http://localhost:8082/feed.json", "Feed 02", "Social news for hackers and entrepreneurs")
+	aggregator.AddSource("Feed 01", "Latest technology news and startup coverage", "http://localhost:8081/feed.json")
+	aggregator.AddSource("Feed 02", "Social news for hackers and entrepreneurs", "http://localhost:8082/feed.json")
 
 	fmt.Println("\n=== Initial Feed Fetch ===")
 	if err := aggregator.FetchAllFeeds(); err != nil {
